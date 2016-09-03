@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>菜谱</title>
+    <style>
+        .all {
+            margin-top: 30px;
+        }
+        .xh {
+            float: left;
+            margin-right: 20px;
+            color: red;
+            font-style: italic;
+            font-size: 30px;
+        }
+        #menu {
+            width: 500px;
+        }
+    </style>
+    <!-- 简洁语法版 -->
+    <script src="jquery-1.11.2.js"></script>
+    <!--<script src="template-native-debug.js"></script>-->
+    <script src="template.js"></script>
+ <!--   <script id="tpl" type="text/html">
+        原生方法解决;在尖括号百分号里面直接写js;传入了这个对象；
+        那么可以直接使用对象中的属性和方法；但是是直系；层叠关系还是同样语法访问
+        <% for(var i = 0 ; i < data.length ; i++){ %>
+        <div class="all">
+            &lt;!&ndash; 百分号后面的等号要紧挨着&ndash;&gt;
+            <h2><%= data[i].title %></h2>
+            <p class="intro"><%= data[i].imtro %></p>
+            <% for(var j = 0 ; j < data[i].albums.length ; j++) { %>
+            <img src=" <%= data[i].albums[j] %>">
+            <% } %>
+            <p class="zl">主料：<%= data[i].ingredients %></p>
+            <p class="fl">辅料：<%= data[i].burden %></p>
+            <div class="steps">
+                <% for(var k = 0 ; k < data[i].steps.length ; k++){ %>
+                <em class="xh"><%= k+1 %>.</em>
+                <div class="c">
+                    <p><%=  data[i].steps[k].step %></p>
+                    <p><img src="<%= data[i].steps[k].img %>" alt=""/></p>
+                </div>
+                <% } %>
+            </div>
+        </div>
+        <hr>
+        <% }%>
+    </script>-->
+<!--  用简洁语法  -->
+<script id="tpl" type="text/html">
+    <!-- data是传进来对象的数组;后面跟上as；i序列号;value是每一项的值；有开始就有结束 -->
+    {{each data as value i}}
+    <div class="all">
+        <h2>{{value.title}}</h2>
+        <p class="intro">{{value.imtro}}</p>
+<!-- 如果在循环过程中还有后代要循环，那么必须点语法访问不能直接访问-->
+        {{each value.albums as value j}}
+        <img src="{{value}}">
+        {{/each}}
+        <p class="zl">主料：{{value.ingredients}}</p>
+        <p class="fl">辅料：{{value.burden}}</p>
+        <div class="steps">
+            {{each value.steps as value k}}
+            <em class="xh">{{k+1}}.</em>
+            <div class="c">
+                <p>{{value.step}}</p>
+                <p><img src="{{value.img}}" alt=""/></p>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+    <hr>
+    {{/each}}
+</script>
+
+
+    <script>
+        $(function(){
+            $btn = $('#btn');
+            $txt = $('#txt');
+            $menu = $('#menu');
+            // 页面刷新给文本框焦点;
+            $txt.focus();
+            $btn.on('click',function(){
+                var txt = $txt.val();
+                if(txt){
+                    // 查询过程中给它一个等待查询的标示
+                    $menu.text('查询中，稍等');
+//                    var val = decodeURIComponent(txt);
+                    var url = 'http://apis.juhe.cn/cook/query?key=82a3deaa4e938c29e68c98981f3a1091&rn=3&pn=0&dtype=jsonp&menu='+ txt;
+                    queryMenu(url);
+//                     console.log(1);
+                }
+            })
+            // 点击事件触发寻找菜单事件；
+            function queryMenu(url){
+                $.ajax({
+                    type:'get',
+                    dataType:'jsonp',
+                    url:url,
+                    success:function(data){
+                        // 数据成功返回去除稍等标示
+                        $menu.text('');
+                        // 判断返回对象中的resultcode属性；不是默认值就为未查询到;
+                        if(data.resultcode != 200){
+                            $menu.text('没有找到菜单哦');
+                        }
+                        // 查询到开始解析数据；使用模板解析数据;
+                        var html = template('tpl',data.result);
+                        // 是用插入还是html直接？？？？？？？？
+                        $menu.append(html);
+                         console.log(data);
+
+
+                    },error:function(){
+                         console.log('filure');
+                    }
+                })
+            }
+
+
+
+        })
+
+
+
+
+    </script>
+
+</head>
+<body>
+<input type="text" name="txt" id="txt"> <input type="button" value="搜索" id="btn">
+
+
+<div id="menu">
+    
+</div>
+</body>
+</html>
